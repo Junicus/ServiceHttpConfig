@@ -4,6 +4,8 @@ using System.Linq;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.WindowsServices;
+using Serilog;
+using Serilog.Events;
 
 namespace ServiceApp
 {
@@ -11,10 +13,18 @@ namespace ServiceApp
     {
         public static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
+
             var isService = true;
             
             if (Debugger.IsAttached || args.Contains("--console"))
             {
+                Log.Information("Setting isService to true");
                 isService = false;
             }
             
@@ -28,14 +38,20 @@ namespace ServiceApp
             
             var webHostArgs = args.Where(arg => arg != "--console").ToArray();
             
-            var host = WebHost.CreateDefaultBuilder(webHostArgs).UseContentRoot(pathToContentRoot).UseStartup<Startup>().Build();
+            var host = WebHost.CreateDefaultBuilder(webHostArgs)
+                .UseContentRoot(pathToContentRoot)
+                .UseStartup<Startup>()
+                .UseSerilog()
+                .Build();
             
             if (isService)
             {
+                Log.Information("Running as a service");
                 host.RunAsService();
             }
             else
             {
+                Log.Information("Running as a console app");
                 host.Run();
             }
         }
