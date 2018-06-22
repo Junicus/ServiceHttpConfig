@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace ServiceApp
 {
@@ -27,6 +29,17 @@ namespace ServiceApp
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
+        }
+
+        public void ConfigureContainer(ContainerBuilder builder)
+        {
+            // Add any Autofac modules or registrations.
+            // This is called AFTER ConfigureServices so things you
+            // register here OVERRIDE things registered in ConfigureServices.
+            //
+            // You must have the call to AddAutofac in the Program.Main
+            // method or this won't be called.
+            builder.RegisterInstance(Log.Logger).As<ILogger>();
         }
     }
 }

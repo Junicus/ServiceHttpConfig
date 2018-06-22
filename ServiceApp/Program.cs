@@ -1,9 +1,12 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.WindowsServices;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 
@@ -39,6 +42,7 @@ namespace ServiceApp
             var webHostArgs = args.Where(arg => arg != "--console").ToArray();
             
             var host = WebHost.CreateDefaultBuilder(webHostArgs)
+                .ConfigureServices(services => services.AddAutofac())
                 .UseContentRoot(pathToContentRoot)
                 .UseStartup<Startup>()
                 .UseSerilog()
