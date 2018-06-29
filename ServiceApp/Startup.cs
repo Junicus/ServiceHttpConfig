@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client;
 using Serilog;
 
 namespace ServiceApp
@@ -41,6 +42,19 @@ namespace ServiceApp
             // You must have the call to AddAutofac in the Program.Main
             // method or this won't be called.
             builder.RegisterInstance(Log.Logger).As<ILogger>();
+
+            var instance = new ConnectionFactory()
+            {
+                AutomaticRecoveryEnabled = true,
+                EndpointResolverFactory = (Func<IEnumerable<AmqpTcpEndpoint>, IEndpointResolver>) (endpoints => (IEndpointResolver) new DefaultEndpointResolver(new [] {new AmqpTcpEndpoint("localhost", -1)})),
+                VirtualHost = "/",
+                UserName = "guest",
+                Password = "guest",
+                RequestedHeartbeat = 60
+            };
+            builder.RegisterInstance<ConnectionFactory>(instance).As<IConnectionFactory>().SingleInstance();
+            builder.Register<IConnection>((Func<IComponentContext, IConnection>) (cc => cc.Resolve<IConnectionFactory>().CreateConnection())).As<IConnection>().SingleInstance();
+            builder.Register<IModel>((Func<IComponentContext, IModel>) (cc => cc.Resolve<IConnection>().CreateModel())).As<IModel>().InstancePerLifetimeScope();
         }
     }
 }
