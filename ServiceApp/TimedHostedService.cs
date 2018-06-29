@@ -2,6 +2,8 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using App.Metrics;
+using App.Metrics.Counter;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -9,16 +11,24 @@ using Serilog;
 
 namespace ServiceApp
 {
+    public static class MetricsRegistry
+    {
+        public static readonly string RabbitMqContext = "RabbitMq";
+
+        public static CounterOptions RabbitMqMessagesReceived = new CounterOptions{Name="MessagesReceived", Context=RabbitMqContext, MeasurementUnit=Unit.Calls};
+    }
 
     public class TimedHostedService : IHostedService, IDisposable
     {
         private readonly ILogger _logger;
         private readonly IModel _channel;
+        private readonly IMetricsRoot _metrics;
 
-        public TimedHostedService(ILogger logger, IModel channel)
+        public TimedHostedService(ILogger logger, IModel channel, IMetricsRoot metrics)
         {
             _logger = logger;
             _channel = channel;
+            _metrics = metrics;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -34,6 +44,7 @@ namespace ServiceApp
             {
                 var message = Encoding.UTF8.GetString(ea.Body);
                 _logger.Information("Routing key: {0}; message: {1}", ea.RoutingKey, message);
+                _metrics.Measure.Counter.Increment(MetricsRegistry.RabbitMqMessagesReceived);
             };
 
             _channel.BasicConsume("ServiceApp.Exchange.Queue", true, "", false, false, null, consumer);

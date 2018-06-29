@@ -1,6 +1,9 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using App.Metrics;
+using App.Metrics.AspNetCore;
+using App.Metrics.Filtering;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore;
@@ -39,11 +42,15 @@ namespace ServiceApp
                 pathToContentRoot = Path.GetDirectoryName(pathToExe);
             }
             
+            var filter = new MetricsFilter();
+            filter.WhereContext(c => c == MetricsRegistry.RabbitMqContext);
             var webHostArgs = args.Where(arg => arg != "--console").ToArray();
             
             var host = WebHost.CreateDefaultBuilder(webHostArgs)
                 .ConfigureServices(services => services.AddAutofac())
                 .UseContentRoot(pathToContentRoot)
+                //.ConfigureMetricsWithDefaults(/*builder => builder.Filter.With(filter)*/)
+                .UseMetrics()
                 .UseStartup<Startup>()
                 .UseSerilog()
                 .Build();
