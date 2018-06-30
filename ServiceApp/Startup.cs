@@ -56,13 +56,6 @@ namespace ServiceApp
             builder.RegisterInstance<ConnectionFactory>(instance).As<IConnectionFactory>().SingleInstance();
             builder.Register<IConnection>((Func<IComponentContext, IConnection>) (cc => cc.Resolve<IConnectionFactory>().CreateConnection())).As<IConnection>().SingleInstance();
             builder.Register<IModel>((Func<IComponentContext, IModel>) (cc => cc.Resolve<IConnection>().CreateModel())).As<IModel>().InstancePerLifetimeScope();
-
-            var metrics = new MetricsBuilder()
-                .OutputMetrics.AsPlainText()
-                .OutputMetrics.AsPrometheusPlainText()
-                .OutputMetrics.AsPrometheusProtobuf()
-                .Build();
-            builder.RegisterInstance(metrics).As<IMetricsRoot>();
         }
     }
 }

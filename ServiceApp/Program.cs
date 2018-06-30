@@ -4,6 +4,7 @@ using System.Linq;
 using App.Metrics;
 using App.Metrics.AspNetCore;
 using App.Metrics.Filtering;
+using App.Metrics.Formatters.Prometheus;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore;
@@ -49,8 +50,11 @@ namespace ServiceApp
             var host = WebHost.CreateDefaultBuilder(webHostArgs)
                 .ConfigureServices(services => services.AddAutofac())
                 .UseContentRoot(pathToContentRoot)
-                //.ConfigureMetricsWithDefaults(/*builder => builder.Filter.With(filter)*/)
-                .UseMetrics()
+                .UseMetrics(options => {
+                    options.EndpointOptions = endpointOptions => {
+                        endpointOptions.MetricsEndpointOutputFormatter = new MetricsPrometheusTextOutputFormatter();
+                    };
+                })
                 .UseStartup<Startup>()
                 .UseSerilog()
                 .Build();
