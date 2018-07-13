@@ -19,7 +19,7 @@ namespace ServiceApp
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHostedService<TimedHostedService>();
+            //services.AddHostedService<TimedHostedService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,6 +43,8 @@ namespace ServiceApp
             // You must have the call to AddAutofac in the Program.Main
             // method or this won't be called.
             builder.RegisterInstance(Log.Logger).As<ILogger>();
+
+            builder.RegisterType<TimedHostedService>().AsImplementedInterfaces().SingleInstance();
 
             var instance = new ConnectionFactory()
             {
