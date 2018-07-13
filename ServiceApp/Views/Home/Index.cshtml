@@ -1,0 +1,12 @@
+<html>
+    <head>
+        <title>Service status</title>
+    </head>
+    <body>
+        <p>The service is currently @ViewBag.ServiceStatus</p>
+
+        <form asp-controller="Home" asp-action="Change" method="POST">
+            <input type="submit" value="Submit"/>
+        </form>
+    </body>
+</html>
